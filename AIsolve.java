@@ -387,6 +387,7 @@ public class AIsolve {
                         }
                         q++;
                     }
+                    q = j;
                     k++;
                 }
                 //if we found a pair, reduce all other cells in the cox
