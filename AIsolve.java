@@ -137,6 +137,9 @@ public class AIsolve {
             //first, add collective possvals of the row 
             for (int k = 0; k < 9; k++){
                 list.addAll(possvals[i][k].getEntries());
+                if (grid[i][k] > 0){
+                    list.add(grid[i][k]);
+                }
             }
             //next, check how many instances of each value there are
             //specifically, if there is only one instance or more than one instance
@@ -166,10 +169,14 @@ public class AIsolve {
                 kp[q] = 0;
             }
         }
+        //now for columns
         list = new ArrayList<Integer>();
         for (int j = 0; j < 9; j++){
             for (int k = 0; k < 9; k++){
                 list.addAll(possvals[k][j].getEntries());
+                if (grid[k][j] > 0){
+                    list.add(grid[k][j]);
+                }
             }
             for (int w = 0; w < 9; w++){
                 if (list.contains(w+1)){
@@ -203,6 +210,9 @@ public class AIsolve {
                 for (int f = row; f < row + 3; f++){
                     for (int g = col; g < col + 3; g++){
                         list.addAll(possvals[f][g].getEntries());
+                        if (grid[f][g] > 0){
+                            list.add(grid[f][g]);
+                        }
                     }
                 }
                 for (int w = 0; w < 9; w++){
