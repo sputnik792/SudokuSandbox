@@ -76,6 +76,7 @@ public class AIsolve {
             return grid;
         }
         else if (nakedTrips() > 0){
+            count = removed;
             if (reduce == 0){
                 currstrat = "Naked Triples Reduction";
                 reduce = 1;
@@ -419,12 +420,452 @@ public class AIsolve {
     }
     
     public int nakedTrips(){
+        //similar to naked pairs, but with more cases
+        // There are 4 cases, with the sizes of the three possval entries being one of 
+        // (3,3,3), (3,3,2), (3,2,2) or (2,2,2)
+        // run a search for the first 3 cases, and then finally run a search for the last case if the other 
+        // cases weren't found
+        // again, at most one triple for each row, column, or box,
+        //first, by row
+        ArrayList<Integer> triple = new ArrayList<Integer>();
+        boolean flag;
+        boolean check;
+        boolean check2;
+        int temp;
+        int k;
+        for (int i = 0; i < 9; i++){
+            while (!triple.isEmpty()){
+                triple.remove(0);
+            }
+            flag = false;
+            k = 0;
+            while ((k < 9)&&(!flag)){ //for the first 3 cases
+                if (possvals[i][k].get_size() == 3){
+                    triple.addAll(possvals[i][k].getEntries());
+                    temp = 10; //out of range
+                    check = false; //true - found a pair
+                    check2 = false; //a little mechanic to keep the same loop running
+                    for (int j = 0; j < 9; j++){
+                        if (j != k){
+                            if (!check){
+                                if ((possvals[i][j].get_size() == 2)||(possvals[i][j].get_size() == 3)){
+                                    if (triple.containsAll(possvals[i][j].getEntries())){
+                                        check = true;
+                                        temp = j; //found one
+                                    }
+                                }
+                            }
+                            if (check2){ //
+                                if ((possvals[i][j].get_size() == 2)||(possvals[i][j].get_size() == 3)){
+                                    if (triple.containsAll(possvals[i][j].getEntries())){
+                                        visited[i][temp] = 1;
+                                        visited[i][j] = 1;
+                                        visited[i][k] = 1;
+                                        flag = true;
+                                        //System.out.println("triple: ");
+                                        //System.out.println("i,temp: "+i+","+temp);
+                                        //System.out.println("i,j: "+i+","+j);
+                                        //System.out.println("i,k: "+i+","+k);
+                                    }
+                                }
+                            }
+                        }
+                        if (check){
+                            check2 = true;
+                        }
+                    }
+                    if (!flag){
+                        while (!triple.isEmpty()){
+                            triple.remove(0);
+                        }   
+                    }
+                }
+                k++;
+            }
+            //for the last case (2,2,2), remember that all 3 tiles have to be different sets of values
+            if (!flag){ //if no triple has been found yet
+                k = 0;
+                while (!triple.isEmpty()){
+                    triple.remove(0);
+                }
+                while ((k < 9)&&(!flag)){
+                    if (possvals[i][k].get_size() == 2){
+                        triple.addAll(possvals[i][k].getEntries());
+                        temp = 10; 
+                        check = false;
+                        check2 = false; 
+                        for (int j = 0; j < 9; j++){
+                            if (j != k){
+                                if (!check){
+                                    if (possvals[i][j].get_size() == 2){
+                                        if (triple.contains(possvals[i][j].getEntries().get(0))){
+                                            triple.add(possvals[i][j].getEntries().get(1));
+                                            check = true;
+                                            temp = j;
+                                        }
+                                        if (triple.contains(possvals[i][j].getEntries().get(1))){
+                                            triple.add(possvals[i][j].getEntries().get(0));
+                                            check = true;
+                                            temp = j;
+                                        }
+                                    }
+                                }
+                                if (check2){
+                                    if (possvals[i][j].get_size() == 2){
+                                        if (triple.containsAll(possvals[i][j].getEntries())){
+                                            visited[i][temp] = 1;
+                                            visited[i][j] = 1;
+                                            visited[i][k] = 1;
+                                            flag = true;
+                                            //System.out.println("triple: ");
+                                            //System.out.println("i,temp: "+i+","+temp);
+                                            //System.out.println("i,j: "+i+","+j);
+                                            //System.out.println("i,k: "+i+","+k);
+                                        }
+                                    }
+                                }
+                            }
+                            if (check){
+                                check2 = true;
+                            }
+                        }
+                        if (!flag){
+                            while (!triple.isEmpty()){
+                                triple.remove(0);
+                            }
+                        }
+                    }
+                    k++;
+                }
+            }
+            //if we found a triple, we need to reduce all other cells in the row
+            if (flag){
+                //System.out.println("values: "+triple.get(0)+","+triple.get(1)+","+triple.get(2));
+                for (int j = 0; j < 9; j++){
+                    if (visited[i][j] == 0){
+                        if (possvals[i][j].getEntries().contains(triple.get(0))){
+                            possvals[i][j].deleteObj(triple.get(0));
+                            sizes[i][j]--;
+                            removed++;
+                            //System.out.println("removed "+triple.get(0)+" from tile "+i+","+j);
+                        }
+                        if (possvals[i][j].getEntries().contains(triple.get(1))){
+                            possvals[i][j].deleteObj(triple.get(1));
+                            sizes[i][j]--;
+                            removed++;
+                            //System.out.println("removed "+triple.get(1)+" from tile "+i+","+j);
+                        }
+                        if (possvals[i][j].getEntries().contains(triple.get(2))){
+                            possvals[i][j].deleteObj(triple.get(2));
+                            sizes[i][j]--;
+                            removed++;
+                            //System.out.println("removed "+triple.get(2)+" from tile "+i+","+j);
+                        }
+                    }
+                }
+            }
+        }
 
+        reset_visits();
+        //then we do it by column
+        for (int j = 0; j < 9; j++){
+            while (!triple.isEmpty()){
+                triple.remove(0);
+            }
+            flag = false;
+            k = 0;
+            while ((k < 9)&&(!flag)){
+                if (possvals[k][j].get_size() == 3){
+                    triple.addAll(possvals[k][j].getEntries());
+                    temp = 10; 
+                    check = false;
+                    check2 = false; 
+                    for (int i = 0; i < 9; i++){
+                        if (i != k){
+                            if (!check){
+                                if ((possvals[i][j].get_size() == 2)||(possvals[i][j].get_size() == 3)){
+                                    if (triple.containsAll(possvals[i][j].getEntries())){
+                                        check = true;
+                                        temp = i; //found one
+                                    }
+                                }
+                            }
+                            if (check2){ //
+                                if ((possvals[i][j].get_size() == 2)||(possvals[i][j].get_size() == 3)){
+                                    if (triple.containsAll(possvals[i][j].getEntries())){
+                                        visited[temp][j] = 1;
+                                        visited[i][j] = 1;
+                                        visited[k][j] = 1;
+                                        flag = true;
+                                        //System.out.println("triple: ");
+                                        //System.out.println("temp,j: "+temp+","+j);
+                                        //System.out.println("i,j: "+i+","+j);
+                                        //System.out.println("k,j: "+k+","+j);
+                                    }
+                                }
+                            }
+                        }
+                        if (check){
+                            check2 = true;
+                        }
+                    }
+                    if (!flag){
+                        while (!triple.isEmpty()){
+                            triple.remove(0);
+                        }   
+                    }
+                }
+                k++;
+            }
+            //for the last case
+            if (!flag){
+                while (!triple.isEmpty()){
+                    triple.remove(0);
+                }   
+                k = 0;
+                while ((k < 9)&&(!flag)){
+                    if (possvals[k][j].get_size() == 2){
+                        triple.addAll(possvals[k][j].getEntries());
+                        temp = 10; 
+                        check = false;
+                        check2 = false; 
+                        for (int i = 0; i < 9; i++){
+                            if (i != k){
+                                if (!check){
+                                    if (possvals[i][j].get_size() == 2){
+                                        if (triple.contains(possvals[i][j].getEntries().get(0))){
+                                            triple.add(possvals[i][j].getEntries().get(1));
+                                            check = true;
+                                            temp = i;
+                                        }
+                                        if (triple.contains(possvals[i][j].getEntries().get(1))){
+                                            triple.add(possvals[i][j].getEntries().get(0));
+                                            check = true;
+                                            temp = i;
+                                        }
+                                    }
+                                }
+                                if (check2){
+                                    if (possvals[i][j].get_size() == 2){
+                                        if (triple.containsAll(possvals[i][j].getEntries())){
+                                            visited[temp][j] = 1;
+                                            visited[i][j] = 1;
+                                            visited[k][j] = 1;
+                                            flag = true;
+                                            //System.out.println("triple: ");
+                                            //System.out.println("temp,j: "+temp+","+j);
+                                            //System.out.println("i,j: "+i+","+j);
+                                            //System.out.println("k,j: "+k+","+j);
+                                        }
+                                    }
+                                }
+                            }
+                            if (check){
+                                check2 = true;
+                            }
+                        }
+                        if (!flag){
+                            while (!triple.isEmpty()){
+                                triple.remove(0);
+                            }
+                        }
+                    }
+                    k++;
+                }
+            }
+            //if we found a triple, we need to reduce all other cells in the column
+            if (flag){
+                //System.out.println("values: "+triple.get(0)+","+triple.get(1)+","+triple.get(2));
+                for (int i = 0; i < 9; i++){
+                    if (visited[i][j] == 0){
+                        if (possvals[i][j].getEntries().contains(triple.get(0))){
+                            possvals[i][j].deleteObj(triple.get(0));
+                            sizes[i][j]--;
+                            removed++;
+                            //System.out.println("removed "+triple.get(0)+" from tile "+i+","+j);
+                        }
+                        if (possvals[i][j].getEntries().contains(triple.get(1))){
+                            possvals[i][j].deleteObj(triple.get(1));
+                            sizes[i][j]--;
+                            removed++;
+                            //System.out.println("removed "+triple.get(1)+" from tile "+i+","+j);
+                        }
+                        if (possvals[i][j].getEntries().contains(triple.get(2))){
+                            possvals[i][j].deleteObj(triple.get(2));
+                            sizes[i][j]--;
+                            removed++;
+                            //System.out.println("removed "+triple.get(2)+" from tile "+i+","+j);
+                        }
+                    }
+                }
+            }
+        }
+
+        reset_visits();
+        int q;
+        int y1, y2; //temp vars
+        //finally, by box
+        for (int i = 0; i < 9; i = i+3){
+            for (int j = 0; j < 9; j = j+3){
+                while (!triple.isEmpty()){
+                    triple.remove(0);
+                }
+                flag = false;
+                k = i;
+                q = j;
+                while ((k < i+3)&&(!flag)){
+                    while ((q < j+3)&&(!flag)){
+                        if (possvals[k][q].get_size() == 3){
+                            triple.addAll(possvals[k][q].getEntries());
+                            y1 = 10;
+                            y2 = 10;
+                            check = false;
+                            check2 = false;
+                            for (int r = i; r < i+3; r++){
+                                for (int c = j; c < j+3; c++){
+                                    if ((r != k)&&(c != q)){
+                                        if (!check){
+                                            if ((possvals[r][c].get_size() == 3)||(possvals[r][c].get_size() == 2)){
+                                                if (triple.containsAll(possvals[r][c].getEntries())){
+                                                    check = true;
+                                                    y1 = r;
+                                                    y2 = c;
+                                                }
+                                            }
+                                        }
+                                        if (check2){
+                                            if ((possvals[r][c].get_size() == 3)||(possvals[r][c].get_size() == 2)){
+                                                if (triple.containsAll(possvals[r][c].getEntries())){
+                                                    visited[y1][y2] = 1;
+                                                    visited[r][c] = 1;
+                                                    visited[k][q] = 1;
+                                                    flag = true;
+                                                    //System.out.println("triple: ");
+                                                    //System.out.println("y1,y2: "+y1+","+y2);
+                                                    //System.out.println("r,c: "+r+","+c);
+                                                    //System.out.println("k,q: "+k+","+q);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (check){
+                                        check2 = true;
+                                    }
+                                }
+                            }
+                            if (!flag){
+                                while (!triple.isEmpty()){
+                                    triple.remove(0);
+                                }
+                            }
+                        }
+                        q++;
+                    }
+                    q = j;
+                    k++;
+                }
+                //for the last case
+                if (!flag){
+                    while (!triple.isEmpty()){
+                        triple.remove(0);
+                    }
+                    k = i;
+                    q = j;
+                    while ((k < i+3)&&(!flag)){
+                        while ((q < j+3)&&(!flag)){
+                            if (possvals[k][q].get_size() == 2){
+                                triple.addAll(possvals[k][q].getEntries());
+                                y1 = 10;
+                                y2 = 10;
+                                check = false;
+                                check2 = false;
+                                for (int r = i; r < i+3; r++){
+                                    for (int c = j; c < j+3; c++){
+                                        if ((r != k)&&(c != q)){
+                                            if (!check){
+                                                if (possvals[r][c].get_size() == 2){
+                                                    if (triple.contains(possvals[r][c].getEntries().get(0))){
+                                                        triple.add(possvals[r][c].getEntries().get(1));
+                                                        check = true;
+                                                        y1 = r;
+                                                        y2 = c;
+                                                    }
+                                                    if (triple.contains(possvals[r][c].getEntries().get(1))){
+                                                        triple.add(possvals[r][c].getEntries().get(0));
+                                                        check = true;
+                                                        y1 = r;
+                                                        y2 = c;
+                                                    }
+                                                }
+                                            }
+                                            if (check2){
+                                                if (possvals[r][c].get_size() == 2){
+                                                    if (triple.containsAll(possvals[r][c].getEntries())){
+                                                        visited[y1][y2] = 1;
+                                                        visited[r][c] = 1;
+                                                        visited[k][q] = 1;
+                                                        flag = true;
+                                                        //System.out.println("triple: ");
+                                                        //System.out.println("y1,y2: "+y1+","+y2);
+                                                        //System.out.println("r,c: "+r+","+c);
+                                                        //System.out.println("k,q: "+k+","+q);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (check){
+                                            check2 = true;
+                                        }
+                                    }
+                                }
+                                if (!flag){
+                                    while (!triple.isEmpty()){
+                                        triple.remove(0);
+                                    }
+                                }
+                            }
+                            q++;
+                        }
+                        q = j;
+                        k++;
+                    }
+                }
+                //if we found a triple, we need to reduce all other cells in the column
+                if (flag){
+                    //System.out.println("values: "+triple.get(0)+","+triple.get(1)+","+triple.get(2));
+                    for (int r = i; r < i+3; r++){
+                        for (int c = j; c < j+3; c++){
+                            if (visited[r][c] == 0){
+                                if (possvals[r][c].getEntries().contains(triple.get(0))){
+                                    possvals[r][c].deleteObj(triple.get(0));
+                                    sizes[r][c]--;
+                                    removed++;
+                                    //System.out.println("removed "+triple.get(0)+" from tile "+r+','+c);
+                                }
+                                if (possvals[r][c].getEntries().contains(triple.get(1))){
+                                    possvals[r][c].deleteObj(triple.get(1));
+                                    sizes[r][c]--;
+                                    removed++;
+                                    //System.out.println("removed "+triple.get(1)+" from tile "+r+','+c);
+                                }
+                                if (possvals[r][c].getEntries().contains(triple.get(2))){
+                                    possvals[r][c].deleteObj(triple.get(2));
+                                    sizes[r][c]--;
+                                    removed++;
+                                    //System.out.println("removed "+triple.get(2)+" from tile "+r+','+c);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         
         return removed;
     }
     
     public int hiddenPairs(){
+        
         return count;
     }
     

@@ -63,6 +63,7 @@ import javax.swing.border.MatteBorder;
         private final int initx = 230; //position of the frame
         private final int inity = 132;
         private final int fontsize = 50;
+        private final int min_req = 29;
         //private JLabel xlabel = new JLabel("0"); // for testing
         //private JLabel ylabel = new JLabel("0"); // for testing
         
@@ -273,12 +274,16 @@ import javax.swing.border.MatteBorder;
                 }
                 else {
                     int z = get_count(gridvals);
-                    if (z >= 30){
+                    if (z < min_req){
+                        new Popup2(min_req - z);
+                    }
+                    else if ((z >= min_req)&&(get_count(startergrid) == 0)){
+                        new Popup2(min_req - z);
+                    }
+                    else {
                         new AIStepper();
                     }
-                    else{
-                        new Popup2(30 - z);
-                    }
+                    
                 }
             }
         }
@@ -328,8 +333,8 @@ import javax.swing.border.MatteBorder;
                 else {
                     if (flag2){
                         int z = get_count(gridvals);
-                        if (z < 30){
-                            new Popup2(30 - z);
+                        if (z < min_req){
+                            new Popup2(min_req - z);
                         }
                         else{
                             flag2 = false;
@@ -433,8 +438,14 @@ import javax.swing.border.MatteBorder;
                 setPreferredSize(new Dimension(400, 80));
                 ((JPanel) getContentPane()).setBorder(new EmptyBorder(13, 13, 13, 13));
                 setLayout(new FlowLayout()); 
-                JLabel txt = new JLabel("You need at least "+(n)+" more inputs before finalizing the puzzle");
-                this.add(txt);
+                if (n > 0){
+                    JLabel txt = new JLabel("You need at least "+(n)+" more inputs before finalizing the puzzle");
+                    this.add(txt);
+                }
+                else {
+                    JLabel txt = new JLabel("Puzzle needs to be finalized before using AIsolver");
+                    this.add(txt);
+                }
                 pack();
                 setLocationRelativeTo(null);
                 setVisible(true);
