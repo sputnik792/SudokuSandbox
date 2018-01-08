@@ -1,4 +1,9 @@
 # SudokuSandbox
+Instructions:
+- When running SudokuSandox, make sure all project files are stored into the same Java Project Folder
+- Any puzzle file (.txt) must be stored directly into the Java Project Folder as well in order to be imported properly
+
+
 Patch Notes:
 
 v1.0
