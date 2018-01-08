@@ -134,6 +134,7 @@ public class AIsolve {
 		int[] kp = new int[9];
 		//it's easiest to first do this by row, then by column, then by box
 		for (int i = 0; i < 9; i++){
+			list = new ArrayList<Integer>();
 			//first, add collective possvals of the row 
 			for (int k = 0; k < 9; k++){
 				list.addAll(possvals[i][k].getEntries());
@@ -168,8 +169,8 @@ public class AIsolve {
 			}
 		}
 		//now for columns
-		list = new ArrayList<Integer>();
 		for (int j = 0; j < 9; j++){
+			list = new ArrayList<Integer>();
 			for (int k = 0; k < 9; k++){
 				list.addAll(possvals[k][j].getEntries());
 			}
@@ -199,9 +200,9 @@ public class AIsolve {
 			}
 		}
 		//boxes are slightly trickier
-		list = new ArrayList<Integer>();
 		for (int row = 0; row < 9; row = row+3){
 			for (int col = 0; col > 9; col = col+3){
+				list = new ArrayList<Integer>();
 				//first two loops indicate the direction we're iterating through
 				for (int f = row; f < row + 3; f++){
 					for (int g = col; g < col + 3; g++){
@@ -263,7 +264,7 @@ public class AIsolve {
 								// pair keeps the values
 								visited[i][j] = 1; //mark the 2 squares not to be reduced
 								visited[i][k] = 1;
-								//Systeintln("tile pair: "+i+","+j+" & "+i+","+k);
+								//System.out.println("tile pair: "+i+","+j+" & "+i+","+k);
 								flag = true;
 							}
 						}
