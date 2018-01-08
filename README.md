@@ -18,7 +18,7 @@ Instructions:
   
   0 0 0 4 1 0 9 0 6
   
-  0 0 9 0 8 4 0 0 0
+  0 3 9 0 8 4 0 0 0
   
   0 2 0 0 0 9 1 0 0
   
@@ -33,6 +33,10 @@ Instructions:
 
 
 Patch Notes:
+
+v1.1
+- Added option for importing user-made puzzles
+- Added option to save GUI-made puzzles
 
 v1.0
 - Added interactive GUI for creating and solving your own puzzles
