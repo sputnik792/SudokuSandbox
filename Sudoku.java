@@ -67,9 +67,10 @@ import javax.swing.border.MatteBorder;
         private final int initx = 230; //position of the frame
         private final int inity = 132;
         private final int fontsize = 50;
-        private final int min_req = 29;
-        //private JLabel xlabel = new JLabel("0"); // for testing
-        //private JLabel ylabel = new JLabel("0"); // for testing
+        private final int min_req = 25;
+        private final int bp1 = 4;
+        private final int bp2 = 4;
+        //bp1 and bp2 are for buildPuzzle's randval.nextInt(bp1)+bp2
         
         private AIsolve game = new AIsolve(gridvals);
         
@@ -223,8 +224,7 @@ import javax.swing.border.MatteBorder;
                     }
                     randomize();
                     error_status = 1;
-                    //print_to_console();
-                }   ///////////////THIS NEEDS QUITE A BIT OF WORK           
+                }           
                 else if (e.getSource() == other) { 
                     for (int i = 0; i <= 8; i++){
                         for (int j = 0; j <= 8; j++){
@@ -875,9 +875,6 @@ import javax.swing.border.MatteBorder;
                             Point b = a.getLocation();
                             xval = (int) b.getX();
                             yval = (int) b.getY();
-                            //for testing
-                            //xlabel.setText(Integer.toString(xval));
-                            //ylabel.setText(Integer.toString(yval));
                         }
                         new TextEdit();
                     }
@@ -967,19 +964,12 @@ import javax.swing.border.MatteBorder;
                     else if (numblist.contains(tempstr)){
                         boolean test = noConflictInput(tempstr, vert_numb, horiz_numb);
                         if (test){
-                            //System.out.println(test);
                             label.setText(tempstr);
                             JLabel templabel = new JLabel("");  
                             templabel = gridlabels[vert_numb][horiz_numb];
                             templabel.setText(field.getText());
                             temp = Integer.parseInt(field.getText());
                             gridvals[vert_numb][horiz_numb] = temp;
-                            //print_to_console();
-                            //System.out.println("-------");
-                            //System.out.println("gridval:"+gridvals[vert_numb][horiz_numb]);
-                            //startergrid[vert_numb][horiz_numb] = 0;
-                            //System.out.println("startval:"+startergrid[vert_numb][horiz_numb]);
-                            //print_to_console();
                             super.dispose();
                         }
                         else {
@@ -1170,7 +1160,7 @@ import javax.swing.border.MatteBorder;
             int rangeval; //index value
             for (int i = 0; i <= 8; i++){
                 ArrayList<Integer> checklist = new ArrayList<Integer>();
-                count = randval.nextInt(3)+4;
+                count = randval.nextInt(bp1)+bp2;
                 for (int k = 1; k <= count; k++){
                     rangeval = randval.nextInt(9);
                     while (checklist.contains(rangeval)){
