@@ -17,6 +17,10 @@ public class Entry{
 		return this.entries;
 	}
 	
+	public Integer get(int e){
+		return entries.get(e);
+	}
+	
 	//removes object e
 	public void deleteObj(Integer e){
 		entries.remove(e);
