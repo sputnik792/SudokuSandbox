@@ -26,6 +26,11 @@ public class AIsolve {
 	private int reduce = 0; //if we end up using a reduction method 
 							//if reduce = 2, it means unsolved 
 	private int[][] visited = new int[9][9]; //keeps track of which tiles are to be kept in consideration
+	private String[] letter_axis = {"A", "B", "C", "D", "E", "F", "G", "H", "I"};
+	private ArrayList<String> AIlog = new ArrayList<String>(); //for outputting all AI steps 
+	private ArrayList<TripleTup<Integer, Integer, Tuple<Integer, Integer>>> tile_log = 
+			new ArrayList<TripleTup<Integer, Integer, Tuple<Integer, Integer>>>(); //this keeps a record of all 
+																//values and their tiles, and the type of action
 	
 	public AIsolve(int[][] g){
 		for (int i = 0; i <= 8; i++){
@@ -36,7 +41,6 @@ public class AIsolve {
 		}
 	}
 	
-
 	public int[][] solve(){
 		reset_visits();
 		count = 0;
@@ -87,6 +91,7 @@ public class AIsolve {
 			return grid;
 		}
 		else if (hiddenPairs() > 0){
+			count = removed;
 			if (reduce == 0){
 				currstrat = "Hidden Pairs Reduction";
 				reduce = 1;
@@ -97,12 +102,24 @@ public class AIsolve {
 			return grid;
 		}
 		else if (hiddenTrips() > 0){
+			count = removed;
 			if (reduce == 0){
 				currstrat = "Hidden Triples Reduction";
 				reduce = 1;
 			}
 			else {
 				currstrat = "Hidden Triples Reduction via " + currstrat;
+			}
+			return grid;
+		}
+		else if (pointingPairs() > 0){
+			count = removed;
+			if (reduce == 0){
+				currstrat = "Pointing Pairs Reduction";
+				reduce = 1;
+			}
+			else {
+				currstrat = "Pointing Pairs Reduction via "+currstrat;
 			}
 			return grid;
 		}
@@ -117,7 +134,7 @@ public class AIsolve {
 		for (int i = 0; i <= 8; i++){
 			for (int j = 0; j <= 8; j++){
 				if ((sizes[i][j] == 1)&&(grid[i][j] == 0)){
-					grid[i][j] = possvals[i][j].getEntries().get(0);
+					grid[i][j] = possvals[i][j].get(0);
 					count++;
 				}
 			}
@@ -152,9 +169,9 @@ public class AIsolve {
 			//now, we check all possvals of each cell to see if there is a 'single-instance' value
 			for (int j = 0; j < 9; j++){
 				z = 0;
-				while (z < possvals[i][j].getEntries().size()){
-					if (kp[possvals[i][j].getEntries().get(z) - 1] == 1){
-						grid[i][j] = possvals[i][j].getEntries().get(z);
+				while (z < possvals[i][j].get_size()){
+					if (kp[possvals[i][j].get(z) - 1] == 1){
+						grid[i][j] = possvals[i][j].get(z);
 						possvals[i][j].remove_all();
 						sizes[i][j] = 0;
 						count++;
@@ -184,9 +201,9 @@ public class AIsolve {
 			}
 			for (int i = 0; i < 9; i++){
 				z = 0;
-				while (z < possvals[i][j].getEntries().size()){
-					if (kp[possvals[i][j].getEntries().get(z) - 1] == 1){
-						grid[i][j] = possvals[i][j].getEntries().get(z);
+				while (z < possvals[i][j].get_size()){
+					if (kp[possvals[i][j].get(z) - 1] == 1){
+						grid[i][j] = possvals[i][j].get(z);
 						possvals[i][j].remove_all();
 						sizes[i][j] = 0;
 						count++;
@@ -220,9 +237,9 @@ public class AIsolve {
 				for (int i = row; i < row + 3; i++){
 					for (int j = col; j < col + 3; j++){
 						z = 0;
-						while (z < possvals[i][j].getEntries().size()){
-							if (kp[possvals[i][j].getEntries().get(z) - 1] == 1){
-								grid[i][j] = possvals[i][j].getEntries().get(z);
+						while (z < possvals[i][j].get_size()){
+							if (kp[possvals[i][j].get(z) - 1] == 1){
+								grid[i][j] = possvals[i][j].get(z);
 								possvals[i][j].remove_all();
 								sizes[i][j] = 0;
 								count++;
@@ -281,13 +298,13 @@ public class AIsolve {
 				//System.out.println("values: "+pair.get(0)+","+pair.get(1));
 				for (int j = 0; j < 9; j++){
 					if (visited[i][j] == 0){
-						if (possvals[i][j].getEntries().contains(pair.get(0))){
+						if (possvals[i][j].isIn(pair.get(0))){
 							possvals[i][j].deleteObj(pair.get(0));
 							sizes[i][j]--;
 							removed++;
 							//System.out.println("removed "+pair.get(0)+" from tile "+i+","+j);
 						}
-						if (possvals[i][j].getEntries().contains(pair.get(1))){
+						if (possvals[i][j].isIn(pair.get(1))){
 							possvals[i][j].deleteObj(pair.get(1));
 							sizes[i][j]--;
 							removed++;
@@ -336,13 +353,13 @@ public class AIsolve {
 				//System.out.println("values: "+pair.get(0)+","+pair.get(1));
 				for (int i = 0; i < 9; i++){
 					if (visited[i][j] == 0){
-						if (possvals[i][j].getEntries().contains(pair.get(0))){
+						if (possvals[i][j].isIn(pair.get(0))){
 							possvals[i][j].deleteObj(pair.get(0));
 							sizes[i][j]--;
 							removed++;
 							//System.out.println("removed "+pair.get(0)+" from tile "+i+","+j);
 						}
-						if (possvals[i][j].getEntries().contains(pair.get(1))){
+						if (possvals[i][j].isIn(pair.get(1))){
 							possvals[i][j].deleteObj(pair.get(1));
 							sizes[i][j]--;
 							removed++;
@@ -402,13 +419,13 @@ public class AIsolve {
 					for (int r = i; r < i+3; r++){
 						for (int c = j; c < j+3; c++){
 							if (visited[r][c] == 0){
-								if (possvals[r][c].getEntries().contains(pair.get(0))){
+								if (possvals[r][c].isIn(pair.get(0))){
 									possvals[r][c].deleteObj(pair.get(0));
 									sizes[r][c]--;
 									removed++;
 									//System.out.println("removed "+pair.get(0)+" from tile "+r+","+c);
 								}
-								if (possvals[r][c].getEntries().contains(pair.get(1))){
+								if (possvals[r][c].isIn(pair.get(1))){
 									possvals[r][c].deleteObj(pair.get(1));
 									sizes[r][c]--;
 									removed++;
@@ -503,13 +520,13 @@ public class AIsolve {
 							if (j != k){
 								if (!check){
 									if (possvals[i][j].get_size() == 2){
-										if (triple.contains(possvals[i][j].getEntries().get(0))){
-											triple.add(possvals[i][j].getEntries().get(1));
+										if (triple.contains(possvals[i][j].get(0))){
+											triple.add(possvals[i][j].get(1));
 											check = true;
 											temp = j;
 										}
-										if (triple.contains(possvals[i][j].getEntries().get(1))){
-											triple.add(possvals[i][j].getEntries().get(0));
+										if (triple.contains(possvals[i][j].get(1))){
+											triple.add(possvals[i][j].get(0));
 											check = true;
 											temp = j;
 										}
@@ -548,19 +565,19 @@ public class AIsolve {
 				//System.out.println("values: "+triple.get(0)+","+triple.get(1)+","+triple.get(2));
 				for (int j = 0; j < 9; j++){
 					if (visited[i][j] == 0){
-						if (possvals[i][j].getEntries().contains(triple.get(0))){
+						if (possvals[i][j].isIn(triple.get(0))){
 							possvals[i][j].deleteObj(triple.get(0));
 							sizes[i][j]--;
 							removed++;
 							//System.out.println("removed "+triple.get(0)+" from tile "+i+","+j);
 						}
-						if (possvals[i][j].getEntries().contains(triple.get(1))){
+						if (possvals[i][j].isIn(triple.get(1))){
 							possvals[i][j].deleteObj(triple.get(1));
 							sizes[i][j]--;
 							removed++;
 							//System.out.println("removed "+triple.get(1)+" from tile "+i+","+j);
 						}
-						if (possvals[i][j].getEntries().contains(triple.get(2))){
+						if (possvals[i][j].isIn(triple.get(2))){
 							possvals[i][j].deleteObj(triple.get(2));
 							sizes[i][j]--;
 							removed++;
@@ -638,13 +655,13 @@ public class AIsolve {
 							if (i != k){
 								if (!check){
 									if (possvals[i][j].get_size() == 2){
-										if (triple.contains(possvals[i][j].getEntries().get(0))){
-											triple.add(possvals[i][j].getEntries().get(1));
+										if (triple.contains(possvals[i][j].get(0))){
+											triple.add(possvals[i][j].get(1));
 											check = true;
 											temp = i;
 										}
-										if (triple.contains(possvals[i][j].getEntries().get(1))){
-											triple.add(possvals[i][j].getEntries().get(0));
+										if (triple.contains(possvals[i][j].get(1))){
+											triple.add(possvals[i][j].get(0));
 											check = true;
 											temp = i;
 										}
@@ -683,19 +700,19 @@ public class AIsolve {
 				//System.out.println("values: "+triple.get(0)+","+triple.get(1)+","+triple.get(2));
 				for (int i = 0; i < 9; i++){
 					if (visited[i][j] == 0){
-						if (possvals[i][j].getEntries().contains(triple.get(0))){
+						if (possvals[i][j].isIn(triple.get(0))){
 							possvals[i][j].deleteObj(triple.get(0));
 							sizes[i][j]--;
                             removed++;
                             //System.out.println("removed "+triple.get(0)+" from tile "+i+","+j);
 						}
-						if (possvals[i][j].getEntries().contains(triple.get(1))){
+						if (possvals[i][j].isIn(triple.get(1))){
 							possvals[i][j].deleteObj(triple.get(1));
 							sizes[i][j]--;
                             removed++;
                             //System.out.println("removed "+triple.get(1)+" from tile "+i+","+j);
 						}
-						if (possvals[i][j].getEntries().contains(triple.get(2))){
+						if (possvals[i][j].isIn(triple.get(2))){
 							possvals[i][j].deleteObj(triple.get(2));
 							sizes[i][j]--;
                             removed++;
@@ -789,14 +806,14 @@ public class AIsolve {
 										if ((r != k)&&(c != q)){
 											if (!check){
 												if (possvals[r][c].get_size() == 2){
-													if (triple.contains(possvals[r][c].getEntries().get(0))){
-														triple.add(possvals[r][c].getEntries().get(1));
+													if (triple.contains(possvals[r][c].get(0))){
+														triple.add(possvals[r][c].get(1));
 														check = true;
 														y1 = r;
 														y2 = c;
 													}
-													if (triple.contains(possvals[r][c].getEntries().get(1))){
-														triple.add(possvals[r][c].getEntries().get(0));
+													if (triple.contains(possvals[r][c].get(1))){
+														triple.add(possvals[r][c].get(0));
 														check = true;
 														y1 = r;
 														y2 = c;
@@ -841,19 +858,19 @@ public class AIsolve {
 					for (int r = i; r < i+3; r++){
 						for (int c = j; c < j+3; c++){
 							if (visited[r][c] == 0){
-								if (possvals[r][c].getEntries().contains(triple.get(0))){
+								if (possvals[r][c].isIn(triple.get(0))){
 									possvals[r][c].deleteObj(triple.get(0));
 									sizes[r][c]--;
 		                            removed++;
 		                            //System.out.println("removed "+triple.get(0)+" from tile "+r+','+c);
 								}
-								if (possvals[r][c].getEntries().contains(triple.get(1))){
+								if (possvals[r][c].isIn(triple.get(1))){
 									possvals[r][c].deleteObj(triple.get(1));
 									sizes[r][c]--;
 		                            removed++;
 		                            //System.out.println("removed "+triple.get(1)+" from tile "+r+','+c);
 								}
-								if (possvals[r][c].getEntries().contains(triple.get(2))){
+								if (possvals[r][c].isIn(triple.get(2))){
 									possvals[r][c].deleteObj(triple.get(2));
 									sizes[r][c]--;
 		                            removed++;
@@ -865,22 +882,751 @@ public class AIsolve {
 				}
 			}
 		}
-		
 		return removed;
 	}
 	
 	public int hiddenPairs(){
+		//similar to hidden singles, we need to count the number of instances of each number inside any row, column, or box
+		//then find the ones that form pairs in pairs of cells. 
+		ArrayList<Tuple<Integer, Integer>> pairlist = new ArrayList<Tuple<Integer, Integer>>();
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		int[] pair = new int[2];
+		int[] kp = new int[9]; //instances
+		int[] tp = new int[4]; //store pair coordinates
+		boolean flag;
+		int w, z, p;
+		//first, for each row
+		for (int i = 0; i < 9; i++){
+			list = new ArrayList<Integer>();
+			pairlist = new ArrayList<Tuple<Integer, Integer>>();
+			//add all possvals into the list
+			for (int k = 0; k < 9; k++){
+				list.addAll(possvals[i][k].getEntries());
+			}
+			// total the instances and adjust kp
+			for (int s = 0; s < list.size(); s++){
+				kp[(list.get(s) - 1)]++;
+			}
+			//create a list of pairs of values that have instances of 2 for each value
+			for (int a1 = 0; a1 < 9; a1++){
+				if (kp[a1] == 2){
+					for (int a2 = a1+1; a2 < 9; a2++){
+						if (kp[a2] == 2){
+							pairlist.add(new Tuple<Integer, Integer>(a1+1, a2+1));
+						}
+					}
+				}
+			}
+			//iterate through the row to find 2 cells that contain both values in both cells
+			w = 0;
+			flag = false;
+			while ((w < pairlist.size())&&(!flag)){
+				z = 0; 
+				while ((z < 9)&&(!flag)){
+					if (possvals[i][z].contains_tup(pairlist.get(w))){
+						int q = z+1; 
+						while ((q < 9)&&(!flag)){
+							if (possvals[i][q].contains_tup(pairlist.get(w))){
+								tp[0] = i;
+								tp[1] = z;
+								tp[2] = i;
+								tp[3] = q; //found the pair of cells
+								pair[0] = pairlist.get(w).first;
+								pair[1] = pairlist.get(w).second;
+								flag = true;
+								//System.out.println("type: row");
+								//System.out.println("tiles: "+tp[0]+","+tp[1]+" & "+tp[2]+","+tp[3]);
+								//System.out.println("values: "+pair[0]+","+pair[1]);
+							}
+							q++;
+						}
+					}
+					z++;
+				}
+				w++;
+			}
+			//reduce both cells if a pair was found
+			if (flag){
+				p = 0; 
+				while (possvals[tp[0]][tp[1]].get_size() > 2){
+					if ((possvals[tp[0]][tp[1]].get(p) != pair[0])&&(possvals[tp[0]][tp[1]].get(p) != pair[1])){
+						//System.out.println("removed "+possvals[tp[0]][tp[1]].get(p)+" from tile "+tp[0]+","+tp[1]);
+						possvals[tp[0]][tp[1]].deleteIndex(p);
+						sizes[tp[0]][tp[1]]--;
+						removed++;
+					}
+					else {
+						p++;
+					}
+				}
+				p = 0;
+				while (possvals[tp[2]][tp[3]].get_size() > 2){
+					if ((possvals[tp[2]][tp[3]].get(p) != pair[0])&&(possvals[tp[2]][tp[3]].get(p) != pair[1])){
+						//System.out.println("removed "+possvals[tp[2]][tp[3]].get(p)+" from tile "+tp[2]+","+tp[3]);
+						possvals[tp[2]][tp[3]].deleteIndex(p);
+						sizes[tp[2]][tp[3]]--;
+						removed++;
+					}
+					else {
+						p++;
+					}
+				}
+			}
+			//reset tp
+			for (int x = 0; x < 4; x++){
+				tp[x] = 0;
+			}
+			//reset kp
+			for (int x = 0; x < 9; x++){
+				kp[x] = 0;
+			}
+			//reset pair
+			pair[0] = 0;
+			pair[1] = 0;
+		}
 		
-		return count;
-	}
+		// then, by column
+		for (int j = 0; j < 9; j++){
+			list = new ArrayList<Integer>();
+			pairlist = new ArrayList<Tuple<Integer, Integer>>();
+			//add all possvals into the list
+			for (int k = 0; k < 9; k++){
+				list.addAll(possvals[k][j].getEntries());
+			}
+			// total the instances and adjust kp
+			for (int s = 0; s < list.size(); s++){
+				kp[(list.get(s) - 1)]++;
+			}
+			//create a list of pairs of values that have instances of 2 for each value
+			for (int a1 = 0; a1 < 9; a1++){
+				if (kp[a1] == 2){
+					for (int a2 = a1+1; a2 < 9; a2++){
+						if (kp[a2] == 2){
+							pairlist.add(new Tuple<Integer, Integer>(a1+1, a2+1));
+						}
+					}
+				}
+			}
+			//iterate through the row to find 2 cells that contain both values in both cells
+			w = 0;
+			flag = false;
+			while ((w < pairlist.size())&&(!flag)){
+				z = 0; 
+				while ((z < 9)&&(!flag)){
+					if (possvals[z][j].contains_tup(pairlist.get(w))){
+						int q = z+1; 
+						while ((q < 9)&&(!flag)){
+							if (possvals[q][j].contains_tup(pairlist.get(w))){
+								tp[0] = z;
+								tp[1] = j;
+								tp[2] = q;
+								tp[3] = j; //found the pair of cells
+								pair[0] = pairlist.get(w).first;
+								pair[1] = pairlist.get(w).second;
+								flag = true;
+								//System.out.println("type: column");
+								//System.out.println("tiles: "+tp[0]+","+tp[1]+" & "+tp[2]+","+tp[3]);
+								//System.out.println("values: "+pair[0]+","+pair[1]);
+							}
+							q++;
+						}
+					}
+					z++;
+				}
+				w++;
+			}
+			//reduce both cells if a pair was found
+			if (flag){
+				p = 0; 
+				while (possvals[tp[0]][tp[1]].get_size() > 2){
+					if ((possvals[tp[0]][tp[1]].get(p) != pair[0])&&(possvals[tp[0]][tp[1]].get(p) != pair[1])){
+						//System.out.println("removed "+possvals[tp[0]][tp[1]].get(p)+" from tile "+tp[0]+","+tp[1]);
+						possvals[tp[0]][tp[1]].deleteIndex(p);
+						sizes[tp[0]][tp[1]]--;
+						removed++;
+					}
+					else {
+						p++;
+					}
+				}
+				p = 0;
+				while (possvals[tp[2]][tp[3]].get_size() > 2){
+					if ((possvals[tp[2]][tp[3]].get(p) != pair[0])&&(possvals[tp[2]][tp[3]].get(p) != pair[1])){
+						//System.out.println("removed "+possvals[tp[2]][tp[3]].get(p)+" from tile "+tp[2]+","+tp[3]);
+						possvals[tp[2]][tp[3]].deleteIndex(p);
+						sizes[tp[2]][tp[3]]--;
+						removed++;
+					}
+					else {
+						p++;
+					}
+				}
+			}
+			//reset tp
+			for (int x = 0; x < 4; x++){
+				tp[x] = 0;
+			}
+			//reset kp
+			for (int x = 0; x < 9; x++){
+				kp[x] = 0;
+			}
+			//reset pair
+			pair[0] = 0;
+			pair[1] = 0;
+		}
+		
+		int q1, q2, z1, z2;
+		//finally, by box
+		for (int i = 0; i < 9; i = i+3){
+			for (int j = 0; j < 9; j = j+3){
+				list = new ArrayList<Integer>();
+				pairlist = new ArrayList<Tuple<Integer, Integer>>();
+				for (int r = i; r < i+3; r++){
+					for (int c = j; c < j+3; c++){
+						list.addAll(possvals[r][c].getEntries());
+					}
+				}
+				for (int s = 0; s < list.size(); s++){
+					kp[(list.get(s) - 1)]++;
+				}
+				for (int a1 = 0; a1 < 9; a1++){
+					if (kp[a1] == 2){
+						for (int a2 = a1+1; a2 < 9; a2++){
+							if (kp[a2] == 2){
+								pairlist.add(new Tuple<Integer, Integer>(a1+1, a2+1));
+							}
+						}
+					}
+				}
+				//iterate through the row to find 2 cells that contain both values in both cells
+				w = 0;
+				flag = false;
+				while ((w < pairlist.size())&&(!flag)){
+					z1 = i;
+					q1 = j;
+					while ((z1 < i+3)&&(!flag)){
+						while ((q1 < j+3)&&(!flag)){
+							if (possvals[z1][q1].contains_tup(pairlist.get(w))){
+								z2 = z1;
+								q2 = q1+1;
+								while ((z2 < i+3)&&(!flag)){
+									while ((q2 < j+3)&&(!flag)){
+										if (possvals[z2][q2].contains_tup(pairlist.get(w))){
+											tp[0] = z1;
+											tp[1] = q1;
+											tp[2] = z2;
+											tp[3] = q2; //found the pair of cells
+											pair[0] = pairlist.get(w).first;
+											pair[1] = pairlist.get(w).second;
+											flag = true;
+											//System.out.println("type: box");
+											//System.out.println("tiles: "+tp[0]+","+tp[1]+" & "+tp[2]+","+tp[3]);
+											//System.out.println("values: "+pair[0]+","+pair[1]);
+										}	
+										q2++;
+									}
+									q2 = j;
+									z2++;
+								}
+							}
+							q1++;
+						}
+						q1 = j;
+						z1++;
+					}
+					w++;
+				}
+				//reduce both cells if a pair was found
+				if (flag){
+					p = 0; 
+					while (possvals[tp[0]][tp[1]].get_size() > 2){
+						if ((possvals[tp[0]][tp[1]].get(p) != pair[0])&&(possvals[tp[0]][tp[1]].get(p) != pair[1])){
+							//System.out.println("removed "+possvals[tp[0]][tp[1]].get(p)+" from tile "+tp[0]+","+tp[1]);
+							possvals[tp[0]][tp[1]].deleteIndex(p);
+							sizes[tp[0]][tp[1]]--;
+							removed++;
+						}
+						else {
+							p++;
+						}
+					}
+					p = 0;
+					while (possvals[tp[2]][tp[3]].get_size() > 2){
+						if ((possvals[tp[2]][tp[3]].get(p) != pair[0])&&(possvals[tp[2]][tp[3]].get(p) != pair[1])){
+							//System.out.println("removed "+possvals[tp[2]][tp[3]].get(p)+" from tile "+tp[2]+","+tp[3]);
+							possvals[tp[2]][tp[3]].deleteIndex(p);
+							sizes[tp[2]][tp[3]]--;
+							removed++;
+						}
+						else {
+							p++;
+						}
+					}
+				}		
+				//reset tp
+				for (int x = 0; x < 4; x++){
+					tp[x] = 0;
+				}
+				//reset kp
+				for (int x = 0; x < 9; x++){
+					kp[x] = 0;
+				}
+				//reset pair
+				pair[0] = 0;
+				pair[1] = 0;
+			}
+		}
+		return removed;
+	} 
 	
 	public int hiddenTrips(){
+		//again, similar to hidden pairs, only there are more cases to consider
+		ArrayList<TripleTup<Integer, Integer, Integer>> triplist = new ArrayList<TripleTup<Integer, Integer, Integer>>();
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		int[] triple = new int[3];
+		int[] kp = new int[9]; //instances
+		int[] tp = new int[6]; //store pair coordinates
+		boolean flag;
+		boolean seek;
+		int w, z, p;
+		//first, by row
+		for (int i = 0; i < 9; i++){
+			list = new ArrayList<Integer>();
+			triplist = new ArrayList<TripleTup<Integer, Integer, Integer>>();
+			//add all possvals into the list
+			for (int k = 0; k < 9; k++){
+				list.addAll(possvals[i][k].getEntries());
+			}
+			// total the instances and adjust kp
+			for (int s = 0; s < list.size(); s++){
+				kp[(list.get(s) - 1)]++;
+			}
+			//create a list of triplets of values that have instances of 2 or 3 for each value
+			for (int a1 = 0; a1 < 9; a1++){
+				if ((kp[a1] == 3)||(kp[a1] == 2)){
+					for (int a2 = a1+1; a2 < 9; a2++){
+						if ((kp[a2] == 3)||(kp[a2] == 2)){
+							for (int a3 = a2+1; a3 < 9; a3++){
+								if ((kp[a3] == 3)||(kp[a3] == 2)){
+									triplist.add(new TripleTup<Integer, Integer, Integer>(a1+1, a2+1, a3+1));
+								}
+							}
+						}
+					}
+				}
+			}
+			//iterate through the row to find 3 cells that contain all 3 values in all 3 cells
+			w = 0;
+			flag = false;
+			while ((w < triplist.size())&&(!flag)){
+				z = 0; 
+				while ((z < 9)&&(!flag)){
+					if (possvals[i][z].contains_trip(triplist.get(w))){
+						int q = z+1; 
+						while ((q < 9)&&(!flag)){
+							if (possvals[i][q].contains_trip(triplist.get(w))){
+								int v = q+1;
+								while ((v < 9)&&(!flag)){
+									if (possvals[i][v].contains_trip(triplist.get(w))){
+										tp[0] = i;
+										tp[1] = z;
+										tp[2] = i;
+										tp[3] = q; 
+										tp[4] = i;
+										tp[5] = v; //found a triplet
+										triple[0] = triplist.get(w).first;
+										triple[1] = triplist.get(w).second;
+										triple[2] = triplist.get(w).third;
+										//now we need to run one last search to make sure none of the values in the triplet
+										//are anywhere else in the same unit
+										seek = true;
+										for (int b = 0; b < 9; b++){
+											if ((b != z)&&(b != q)&&(b != v)){
+												if (possvals[i][b].contains_anyTrip(triplist.get(w))){
+													seek = false;
+												}
+											}
+										}
+										if (seek){
+											flag = true;
+											//System.out.println("type: row");
+											//System.out.println("tiles: "+tp[0]+","+tp[1]+" & "+tp[2]+","+tp[3]+" & "+tp[4]+","+tp[5]);
+											//System.out.println("values: "+triple[0]+","+triple[1]+","+triple[2]);
+										}
+									}
+									v++;
+								}
+							}
+							q++;
+						}
+					}
+					z++;
+				}
+				w++;
+			}
+			//reduce all 3 cells if a triplet was found
+			if (flag){
+				p = possvals[tp[0]][tp[1]].get_size() - 1;
+				while (p >= 0){
+					if ((possvals[tp[0]][tp[1]].get(p) != triple[0])&&(possvals[tp[0]][tp[1]].get(p) != triple[1])
+							&&(possvals[tp[0]][tp[1]].get(p) != triple[2])){
+						//System.out.println("removed "+possvals[tp[0]][tp[1]].get(p)+" from tile "+tp[0]+","+tp[1]);
+						possvals[tp[0]][tp[1]].deleteIndex(p);;
+						sizes[tp[0]][tp[1]]--;
+						removed++;
+						p--;
+					}
+					else {
+						p--;
+					}
+				}
+				p = possvals[tp[2]][tp[3]].get_size() - 1;
+				while (p >= 0){
+					if ((possvals[tp[2]][tp[3]].get(p) != triple[0])&&(possvals[tp[2]][tp[3]].get(p) != triple[1])
+							&&(possvals[tp[2]][tp[3]].get(p) != triple[2])){
+						//System.out.println("removed "+possvals[tp[2]][tp[3]].get(p)+" from tile "+tp[2]+","+tp[3]);
+						possvals[tp[2]][tp[3]].deleteIndex(p);;
+						sizes[tp[2]][tp[3]]--;
+						removed++;
+						p--;
+					}
+					else {
+						p--;
+					}
+				}
+				p = possvals[tp[4]][tp[5]].get_size() - 1;
+				while (p >= 0){
+					if ((possvals[tp[4]][tp[5]].get(p) != triple[0])&&(possvals[tp[4]][tp[5]].get(p) != triple[1])
+							&&(possvals[tp[4]][tp[5]].get(p) != triple[2])){
+						//System.out.println("removed "+possvals[tp[4]][tp[5]].get(p)+" from tile "+tp[4]+","+tp[5]);
+						possvals[tp[4]][tp[5]].deleteIndex(p);;
+						sizes[tp[4]][tp[5]]--;
+						removed++;
+						p--;
+					}
+					else {
+						p--;
+					}
+				}
+			}
+			//reset tp
+			for (int x = 0; x < 6; x++){
+				tp[x] = 0;
+			}
+			//reset kp
+			for (int x = 0; x < 9; x++){
+				kp[x] = 0;
+			}
+			//reset triple
+			for (int x = 0; x < 3; x++){
+				triple[x] = 0;
+			}
+		}
+		
+		//then by column
+		for (int j = 0; j < 9; j++){
+			list = new ArrayList<Integer>();
+			triplist = new ArrayList<TripleTup<Integer, Integer, Integer>>();
+			//add all possvals into the list
+			for (int k = 0; k < 9; k++){
+				list.addAll(possvals[k][j].getEntries());
+			}
+			// total the instances and adjust kp
+			for (int s = 0; s < list.size(); s++){
+				kp[(list.get(s) - 1)]++;
+			}
+			//create a list of triplets of values that have instances of 2 or 3 for each value
+			for (int a1 = 0; a1 < 9; a1++){
+				if ((kp[a1] == 3)||(kp[a1] == 2)){
+					for (int a2 = a1+1; a2 < 9; a2++){
+						if ((kp[a2] == 3)||(kp[a2] == 2)){
+							for (int a3 = a2+1; a3 < 9; a3++){
+								if ((kp[a3] == 3)||(kp[a3] == 2)){
+									triplist.add(new TripleTup<Integer, Integer, Integer>(a1+1, a2+1, a3+1));
+								}
+							}
+						}
+					}
+				}
+			}
+			w = 0;
+			flag = false;
+			while ((w < triplist.size())&&(!flag)){
+				z = 0; 
+				while ((z < 9)&&(!flag)){
+					if (possvals[z][j].contains_trip(triplist.get(w))){
+						int q = z+1; 
+						while ((q < 9)&&(!flag)){
+							if (possvals[q][j].contains_trip(triplist.get(w))){
+								int v = q+1;
+								while ((v < 9)&&(!flag)){
+									if (possvals[v][j].contains_trip(triplist.get(w))){
+										tp[0] = z;
+										tp[1] = j;
+										tp[2] = q;
+										tp[3] = j; 
+										tp[4] = v;
+										tp[5] = j; //found a triplet
+										triple[0] = triplist.get(w).first;
+										triple[1] = triplist.get(w).second;
+										triple[2] = triplist.get(w).third;
+										seek = true;
+										for (int b = 0; b < 9; b++){
+											if ((b != z)&&(b != q)&&(b != v)){
+												if (possvals[b][j].contains_anyTrip(triplist.get(w))){
+													seek = false;
+												}
+											}
+										}
+										if (seek){
+											flag = true;
+											//System.out.println("type: column");
+											//System.out.println("tiles: "+tp[0]+","+tp[1]+" & "+tp[2]+","+tp[3]+" & "+tp[4]+","+tp[5]);
+											//System.out.println("values: "+triple[0]+","+triple[1]+","+triple[2]);
+										}
+									}
+									v++;
+								}
+							}
+							q++;
+						}
+					}
+					z++;
+				}
+				w++;
+			}
+			//reduce all 3 cells if a triplet was found
+			if (flag){
+				p = possvals[tp[0]][tp[1]].get_size() - 1;
+				while (p >= 0){
+					if ((possvals[tp[0]][tp[1]].get(p) != triple[0])&&(possvals[tp[0]][tp[1]].get(p) != triple[1])
+							&&(possvals[tp[0]][tp[1]].get(p) != triple[2])){
+						//System.out.println("removed "+possvals[tp[0]][tp[1]].get(p)+" from tile "+tp[0]+","+tp[1]);
+						possvals[tp[0]][tp[1]].deleteIndex(p);;
+						sizes[tp[0]][tp[1]]--;
+						removed++;
+						p--;
+					}
+					else {
+						p--;
+					}
+				}
+				p = possvals[tp[2]][tp[3]].get_size() - 1;
+				while (p >= 0){
+					if ((possvals[tp[2]][tp[3]].get(p) != triple[0])&&(possvals[tp[2]][tp[3]].get(p) != triple[1])
+							&&(possvals[tp[2]][tp[3]].get(p) != triple[2])){
+						//System.out.println("removed "+possvals[tp[2]][tp[3]].get(p)+" from tile "+tp[2]+","+tp[3]);
+						possvals[tp[2]][tp[3]].deleteIndex(p);;
+						sizes[tp[2]][tp[3]]--;
+						removed++;
+						p--;
+					}
+					else {
+						p--;
+					}
+				}
+				p = possvals[tp[4]][tp[5]].get_size() - 1;
+				while (p >= 0){
+					if ((possvals[tp[4]][tp[5]].get(p) != triple[0])&&(possvals[tp[4]][tp[5]].get(p) != triple[1])
+							&&(possvals[tp[4]][tp[5]].get(p) != triple[2])){
+						//System.out.println("removed "+possvals[tp[4]][tp[5]].get(p)+" from tile "+tp[4]+","+tp[5]);
+						possvals[tp[4]][tp[5]].deleteIndex(p);;
+						sizes[tp[4]][tp[5]]--;
+						removed++;
+						p--;
+					}
+					else {
+						p--;
+					}
+				}
+			}
+			//reset tp
+			for (int x = 0; x < 6; x++){
+				tp[x] = 0;
+			}
+			//reset kp
+			for (int x = 0; x < 9; x++){
+				kp[x] = 0;
+			}
+			//reset triple
+			for (int x = 0; x < 3; x++){
+				triple[x] = 0;
+			}
+		}
+		
+		int q1, q2, q3, w1, w2, w3;
+		//finally, by box
+		for (int i = 0; i < 9; i = i+3){
+			for (int j = 0; j < 9; j = j+3){
+				list = new ArrayList<Integer>();
+				triplist = new ArrayList<TripleTup<Integer, Integer, Integer>>();
+				//add all possvals into the list
+				for (int r = i; r < i+3; r++){
+					for (int c = j; c < j+3; c++){
+						list.addAll(possvals[r][c].getEntries());
+					}
+				}
+				// total the instances and adjust kp
+				for (int s = 0; s < list.size(); s++){
+					kp[(list.get(s) - 1)]++;
+				}
+				//create a list of triplets of values that have instances of 2 or 3 for each value
+				for (int a1 = 0; a1 < 9; a1++){
+					if ((kp[a1] == 3)||(kp[a1] == 2)){
+						for (int a2 = a1+1; a2 < 9; a2++){
+							if ((kp[a2] == 3)||(kp[a2] == 2)){
+								for (int a3 = a2+1; a3 < 9; a3++){
+									if ((kp[a3] == 3)||(kp[a3] == 2)){
+										triplist.add(new TripleTup<Integer, Integer, Integer>(a1+1, a2+1, a3+1));
+									}
+								}
+							}
+						}
+					}
+				} 
+				z = 0;
+				flag = false;
+				while ((z < triplist.size())&&(!flag)){
+					q1 = i;
+					w1 = j;
+					while ((q1 < i+3)&&(!flag)){
+						while ((w1 < j+3)&&(!flag)){
+							if (possvals[q1][w1].contains_trip(triplist.get(z))){
+								q2 = q1;
+								w2 = w1 + 1;
+								while ((q2 < i+3)&&(!flag)){
+									while ((w2 < j+3)&&(!flag)){
+										if (possvals[q2][w2].contains_trip(triplist.get(z))){
+											q3 = q2;
+											w3 = w2 + 1;
+											while ((q3 < j+3)&&(!flag)){
+												while ((w3 < j+3)&&(!flag)){
+													if (possvals[q3][w3].contains_trip(triplist.get(z))){
+														tp[0] = q1;
+														tp[1] = w1;
+														tp[2] = q2;
+														tp[3] = w2; 
+														tp[4] = q3;
+														tp[5] = w3; //found a triplet
+														triple[0] = triplist.get(z).first;
+														triple[1] = triplist.get(z).second;
+														triple[2] = triplist.get(z).third;
+														seek = true;
+														for (int b = i; b < i+3; b++){
+															for (int t = j; t < j+3; t++){
+																if (!(((b == q1)&&(t == w1))||((b == q2)&&(t == w2))||((b == q3)&&(t == w3)))){
+																	if (possvals[b][t].contains_anyTrip(triplist.get(z))){
+																		seek = false;
+																	}
+																}
+															}
+														}
+														if (seek){
+															flag = true;
+															//System.out.println("type: box");
+															//System.out.println("tiles: "+tp[0]+","+tp[1]+" & "+tp[2]+","+tp[3]+" & "+tp[4]+","+tp[5]);
+															//System.out.println("values: "+triple[0]+","+triple[1]+","+triple[2]);
+														}
+													}
+													w3++;
+												}
+												w3 = j;
+												q3++;
+											}
+										}
+										w2++;
+									}
+									w2 = j;
+									q2++;
+								}
+							}
+							w1++;
+						}
+						w1 = j;
+						q1++;
+					}
+					z++;
+				}
+				//reduce all 3 cells if a triplet was found
+				if (flag){
+					p = possvals[tp[0]][tp[1]].get_size() - 1;
+					while (p >= 0){
+						if ((possvals[tp[0]][tp[1]].get(p) != triple[0])&&(possvals[tp[0]][tp[1]].get(p) != triple[1])
+								&&(possvals[tp[0]][tp[1]].get(p) != triple[2])){
+							//System.out.println("removed "+possvals[tp[0]][tp[1]].get(p)+" from tile "+tp[0]+","+tp[1]);
+							possvals[tp[0]][tp[1]].deleteIndex(p);;
+							sizes[tp[0]][tp[1]]--;
+							removed++;
+							p--;
+						}
+						else {
+							p--;
+						}
+					}
+					p = possvals[tp[2]][tp[3]].get_size() - 1;
+					while (p >= 0){
+						if ((possvals[tp[2]][tp[3]].get(p) != triple[0])&&(possvals[tp[2]][tp[3]].get(p) != triple[1])
+								&&(possvals[tp[2]][tp[3]].get(p) != triple[2])){
+							//System.out.println("removed "+possvals[tp[2]][tp[3]].get(p)+" from tile "+tp[2]+","+tp[3]);
+							possvals[tp[2]][tp[3]].deleteIndex(p);;
+							sizes[tp[2]][tp[3]]--;
+							removed++;
+							p--;
+						}
+						else {
+							p--;
+						}
+					}
+					p = possvals[tp[4]][tp[5]].get_size() - 1;
+					while (p >= 0){
+						if ((possvals[tp[4]][tp[5]].get(p) != triple[0])&&(possvals[tp[4]][tp[5]].get(p) != triple[1])
+								&&(possvals[tp[4]][tp[5]].get(p) != triple[2])){
+							//System.out.println("removed "+possvals[tp[4]][tp[5]].get(p)+" from tile "+tp[4]+","+tp[5]);
+							possvals[tp[4]][tp[5]].deleteIndex(p);;
+							sizes[tp[4]][tp[5]]--;
+							removed++;
+							p--;
+						}
+						else {
+							p--;
+						}
+					}
+				}
+				//reset tp
+				for (int x = 0; x < 6; x++){
+					tp[x] = 0;
+				}
+				//reset kp
+				for (int x = 0; x < 9; x++){
+					kp[x] = 0;
+				}
+				//reset triple
+				for (int x = 0; x < 3; x++){
+					triple[x] = 0;
+				}
+			}
+		}
+		return removed;
+	}
+	
+	public int nakedQuads(){
+		return removed;
+	}
+	
+	public int hiddenQuads(){
 		return count;
 	}
 	
-	public int pointingGroups(){
+	public int pointingPairs(){
 		return count;
 	}
+	
+	public int pointingTrips(){
+		return count;
+	}
+	
+	
+	
 	
 	
 	//if we come across a puzzle with multiple solutions, the AI will just fill in a random tile
@@ -891,7 +1637,7 @@ public class AIsolve {
 		while ((i < 9)&&(!flag)){
 			while ((j < 9)&&(!flag)){
 				if (possvals[i][j].get_size() != 0){
-					grid[i][j] = possvals[i][j].getEntries().get(0);
+					grid[i][j] = possvals[i][j].get(0);
 					flag = true;
 				}
 				j++;
@@ -1014,6 +1760,16 @@ public class AIsolve {
     
     public String get_strat(){
     	return this.currstrat;
+    }
+    
+    public ArrayList<String> get_TextLog(){
+    	return this.AIlog;
+    }
+    
+    public void clear_TextLog(){
+    	while (!AIlog.isEmpty()){
+    		AIlog.remove(0);
+    	}
     }
     
     public void setGrid(int[][] g){

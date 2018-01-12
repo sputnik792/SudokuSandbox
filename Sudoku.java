@@ -38,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneLayout;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -62,20 +63,27 @@ import javax.swing.border.MatteBorder;
         private boolean flag2 = true; // used to check if the puzzle has been finalized
         private int error_status; //0 is default, 1 is for finalize
         private JFrame frame = new JFrame("Sudoku Sandbox");
-        private JPanel parent2 = new JPanel();
         private JPanel parent = new JPanel();
-        private final int initx = 230; //position of the frame
-        private final int inity = 132;
+        private JPanel parent2 = new JPanel();
+        private String[] letter_axis = {"A", "B", "C", "D", "E", "F", "G", "H", "I"};
+        private final int initx = 160; //position of the frame
+        private final int inity = 102;
         private final int fontsize = 50;
         private final int min_req = 25;
         private final int bp1 = 4;
-        private final int bp2 = 4;
+        private final int bp2 = 3;
         //bp1 and bp2 are for buildPuzzle's randval.nextInt(bp1)+bp2
         
         private AIsolve game = new AIsolve(gridvals);
         
         private Entry[][] possvals = new Entry[9][9];
         private JLabel[][][] minilabels = new JLabel[9][9][9];
+        private CellPane[][] cellpanes = new CellPane[9][9]; //maybe can be used for some shading
+        private ArrayList<String> logtext = new ArrayList<String>(); //for the TextLog
+        private int logtextMarker = 0;
+        private ArrayList<TripleTup<Integer, Integer, Tuple<Integer, Integer>>> tile_log = 
+                new ArrayList<TripleTup<Integer, Integer, Tuple<Integer, Integer>>>();
+        private JScrollPane scrollPane = new JScrollPane(); 
                 
         public static void main(String[] args) {
             new Sudoku();
@@ -160,6 +168,7 @@ import javax.swing.border.MatteBorder;
                         gridvals[row][col] = 0; //initialize the gridvals grid with all 0's
                         gridlabels[row][col] = numb; // initialize the gridlabels with all " "
                                                     // gridlabels references the labels on the actual GUI
+                        cellpanes[row][col] = cellPane;
                         this.add(cellPane, gbc);
                     }
                 }
@@ -236,6 +245,9 @@ import javax.swing.border.MatteBorder;
                         }
                     }
                     displayPuzzle(gridvals);
+                    logtext = new ArrayList<String>();
+                    logtextMarker = 0;
+                    scrollPane.removeAll();
                     //print_to_console();
                     flag2 = true;
                     error_status = 0;
@@ -283,8 +295,7 @@ import javax.swing.border.MatteBorder;
                 }
             }
         }
-        
-
+       
         @SuppressWarnings("serial")
         public class OutputTextPanel3 extends JPanel implements ActionListener{
             
@@ -325,6 +336,9 @@ import javax.swing.border.MatteBorder;
                     }
                     game.reset_AI(startergrid);
                     displayPuzzle(startergrid);
+                    logtext = new ArrayList<String>();
+                    logtextMarker = 0;
+                    scrollPane.removeAll();
                 }
                 else {
                     if (flag2){
@@ -398,8 +412,7 @@ import javax.swing.border.MatteBorder;
                 }
             }
         }
-        
-        
+         
         //-------Additional JComponents
         
         @SuppressWarnings("serial")
@@ -445,8 +458,7 @@ import javax.swing.border.MatteBorder;
                         actionPerformed(e);
                     }
 
-                });
-                
+                });                
             }
             
             public void actionPerformed(ActionEvent e){
@@ -482,7 +494,6 @@ import javax.swing.border.MatteBorder;
                         displayPuzzle(gridvals);
                         super.dispose();
                     }
-
                 }
             }
             
@@ -688,19 +699,113 @@ import javax.swing.border.MatteBorder;
         }
         
         @SuppressWarnings("serial")
+        public class TextLog extends JFrame { 
+            
+            public TextLog(){ 
+                super("Log");
+                setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+                setPreferredSize(new Dimension(300, 560));
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setBounds(0, 0, 330, 65);
+                ((JPanel) getContentPane()).setBorder(new EmptyBorder(1, 1, 1, 1) );
+                scrollPane.setLayout(new ScrollPaneLayout()); 
+                add(scrollPane);
+                setLocation(initx + 1320, inity + 132);
+                pack();
+                setVisible(true);
+                setResizable(false);     
+            }
+            
+            public void print_log(){
+                logtext.addAll(game.get_TextLog());
+                game.clear_TextLog();
+                while (logtextMarker < logtext.size()){
+                    JLabel output = new JLabel(logtext.get(logtextMarker));
+                    scrollPane.add(output);
+                    logtextMarker++;
+                }
+                logtext.add("Break"); //separate the different stages of the solving algorithms
+                logtextMarker++;
+            }
+            
+        }
+        
+        @SuppressWarnings("serial")
         public class MiniGrid extends JFrame {          
             public MiniGrid(){
                 super("AI View");
                 setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-                setPreferredSize(new Dimension(600, 623));
+                setPreferredSize(new Dimension(600+40, 623+20));
                 ((JPanel) getContentPane()).setBorder(new EmptyBorder(1, 1, 1, 1));
                 setLayout(new FlowLayout());
-                add(new CellGridPane2());
+                JPanel parent3 = new JPanel(); //labeling the axis
+                JPanel parent4 = new JPanel();
+                JPanel subpar1 = new JPanel();
+                JPanel subpar2 = new JPanel();
+                parent4.setLayout(new BoxLayout(parent4, BoxLayout.PAGE_AXIS));
+                parent3.setLayout(new BoxLayout(parent3, BoxLayout.LINE_AXIS));
+                subpar1.setLayout(new BoxLayout(subpar1, BoxLayout.LINE_AXIS)); //horiz labels
+                subpar2.setLayout(new BoxLayout(subpar2, BoxLayout.PAGE_AXIS)); //vert labels
+                subpar1.setPreferredSize(new Dimension(600+40, 15));
+                
+                String haxis = "   A             B              C            "
+                        + "  D             E              F              G        "
+                        + "      H              I            "; //Not the best way, but multiple
+                                                                // labels leave too much spacing
+                JLabel temp = new JLabel(haxis);
+                temp.setFont(new Font("Serif", Font.PLAIN, 15));
+                temp.setForeground(new Color (170, 0, 0));
+                subpar1.add(temp);
+                //subpar2.add(new JLabel(" "));
+                subpar2.add(new JLabel(" "));
+                for (int a = 0; a < 3; a++){
+                    JLabel temp2 = new JLabel(""+(a+1)+"       ");
+                    temp2.setFont(new Font("Serif", Font.PLAIN, 15));
+                    temp2.setForeground(new Color (170, 0, 0));
+                    subpar2.add(temp2);
+                    subpar2.add(new JLabel(" "));
+                    subpar2.add(new JLabel(" "));
+                    subpar2.add(new JLabel(" "));   
+                }
+                subpar2.add(new JLabel(" "));
+                for (int a = 3; a < 6; a++){
+                    JLabel temp2 = new JLabel(""+(a+1)+"       ");
+                    temp2.setFont(new Font("Serif", Font.PLAIN, 15));
+                    temp2.setForeground(new Color (170, 0, 0));
+                    subpar2.add(temp2);
+                    subpar2.add(new JLabel(" "));
+                    subpar2.add(new JLabel(" "));
+                    subpar2.add(new JLabel(" "));
+                }
+                subpar2.add(new JLabel(" "));
+                for (int a = 6; a < 8; a++){
+                    JLabel temp2 = new JLabel(""+(a+1)+"       ");
+                    temp2.setFont(new Font("Serif", Font.PLAIN, 15));
+                    temp2.setForeground(new Color (170, 0, 0));
+                    subpar2.add(temp2);
+                    subpar2.add(new JLabel(" "));
+                    subpar2.add(new JLabel(" "));
+                    subpar2.add(new JLabel(" "));
+                }
+                JLabel temp2 = new JLabel(""+(9)+"       ");
+                temp2.setFont(new Font("Serif", Font.PLAIN, 15));
+                temp2.setForeground(new Color (170, 0, 0));
+                subpar2.add(temp2);
+                subpar2.add(new JLabel(" "));
+                subpar2.add(new JLabel(" "));
+                //add(new CellGridPane2());
+                parent4.add(subpar1);
+                parent3.add(new CellGridPane2());
+                parent3.add(subpar2);
+                parent4.add(parent3);
+                add(parent4);
                 setLocation(initx + 657, inity + 222);
                 pack();
                 setVisible(true);
-                setResizable(false);    
+                setResizable(false); 
             }
+            
         }
         
         //iterate through the AI strategy step by step
@@ -714,6 +819,7 @@ import javax.swing.border.MatteBorder;
             private JButton restart = new JButton("Restart");
             //open minigrid
             MiniGrid min = new MiniGrid();
+            //TextLog tl = new TextLog();
             
             public AIStepper()
             {
@@ -722,13 +828,19 @@ import javax.swing.border.MatteBorder;
                 addWindowListener(new WindowAdapter()
                 {
                     @Override
-                    public void windowClosing(WindowEvent e)
+                    public void windowClosing(WindowEvent e) 
                     {
+                        //tl.dispose();
                         min.dispose();
                         e.getWindow().dispose();
                     }
                 });
-                setPreferredSize(new Dimension(340, 100));
+                min.addComponentListener(new ComponentAdapter() {
+                    public void componentMoved(ComponentEvent e) {
+                       min.setLocation(initx + 657, inity + 222);
+                    }
+                 });
+                setPreferredSize(new Dimension(400, 100));
                 ((JPanel) getContentPane()).setBorder(new EmptyBorder(13, 13, 13, 13) );
                 setLayout(new FlowLayout());       
                 step.setActionCommand("myButton");
@@ -763,6 +875,7 @@ import javax.swing.border.MatteBorder;
                         actionPerformed(e);
                     }
                 });
+                
                 
             }
             
@@ -837,6 +950,9 @@ import javax.swing.border.MatteBorder;
                     label2.setText("");
                     displayPuzzle(gridvals);
                     restartMini();
+                    logtext = new ArrayList<String>();
+                    logtextMarker = 0;
+                    scrollPane.removeAll();
                 }
                 
             }
@@ -1154,6 +1270,7 @@ import javax.swing.border.MatteBorder;
         }
         
         //creates the random puzzle
+        //determines which cells to remove from the solution grid
         public int[][] buildPuzzle(int[][] grid){
             Random randval = new Random(); 
             int count; //how many to remove from each row
