@@ -34,6 +34,11 @@ Instructions:
 
 Patch Notes:
 
+v1.1.1
+- Added AI minigrid; provides an AI point-of-view for tracking each step of the algorithm
+- Improved AI
+- Additional files included; required for updated AI
+
 v1.1
 - Added option for importing user-made puzzles
 - Added option to save GUI-made puzzles
