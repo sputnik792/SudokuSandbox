@@ -8,4 +8,8 @@ public class Tuple<X, Y> {
 		this.second = y; 
 	} 
  
+	public void print_tuple(Tuple<X, Y> tup){
+		System.out.println("tuple: "+tup.first+","+tup.second);
+	}
+	
 } 
