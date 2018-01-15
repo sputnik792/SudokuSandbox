@@ -71,7 +71,7 @@ import javax.swing.border.MatteBorder;
         private final int fontsize = 50;
         private final int min_req = 25;
         private final int bp1 = 4;
-        private final int bp2 = 3;
+        private final int bp2 = 4;
         //bp1 and bp2 are for buildPuzzle's randval.nextInt(bp1)+bp2
         
         private AIsolve game = new AIsolve(gridvals);
@@ -79,12 +79,16 @@ import javax.swing.border.MatteBorder;
         private Entry[][] possvals = new Entry[9][9];
         private JLabel[][][] minilabels = new JLabel[9][9][9];
         private CellPane[][] cellpanes = new CellPane[9][9]; //maybe can be used for some shading
+        private ArrayList<JLabel> labellist = new ArrayList<JLabel>();
         private ArrayList<String> logtext = new ArrayList<String>(); //for the TextLog
         private int logtextMarker = 0;
         private ArrayList<TripleTup<Integer, Integer, Tuple<Integer, Integer>>> tile_log = 
                 new ArrayList<TripleTup<Integer, Integer, Tuple<Integer, Integer>>>();
-        private JScrollPane scrollPane = new JScrollPane(); 
+        private JPanel dummypanel = new JPanel();
+        private JScrollPane scrollPane = new JScrollPane(dummypanel);   
+        private int CI = 0;
                 
+        //start code
         public static void main(String[] args) {
             new Sudoku();
         }
@@ -233,6 +237,19 @@ import javax.swing.border.MatteBorder;
                     }
                     randomize();
                     error_status = 1;
+                    for (int i = 0; i <= 8; i++){
+                        for (int j = 0; j <= 8; j++){
+                            colorshift[i][j] = 0;
+                        }
+                    }
+                    logtext = new ArrayList<String>();
+                    logtextMarker = 0;
+                    dummypanel.removeAll();
+                    //print_to_console();
+                    flag2 = true;
+                    error_status = 0;
+                    CI = 0;
+                    labellist = new ArrayList<JLabel>();
                 }           
                 else if (e.getSource() == other) { 
                     for (int i = 0; i <= 8; i++){
@@ -247,10 +264,12 @@ import javax.swing.border.MatteBorder;
                     displayPuzzle(gridvals);
                     logtext = new ArrayList<String>();
                     logtextMarker = 0;
-                    scrollPane.removeAll();
+                    dummypanel.removeAll();
                     //print_to_console();
                     flag2 = true;
                     error_status = 0;
+                    CI = 0;
+                    labellist = new ArrayList<JLabel>();
                 }
             }
         }
@@ -338,7 +357,9 @@ import javax.swing.border.MatteBorder;
                     displayPuzzle(startergrid);
                     logtext = new ArrayList<String>();
                     logtextMarker = 0;
-                    scrollPane.removeAll();
+                    dummypanel.removeAll();
+                    CI = 0;
+                    labellist = new ArrayList<JLabel>();
                 }
                 else {
                     if (flag2){
@@ -705,6 +726,7 @@ import javax.swing.border.MatteBorder;
                 super("Log");
                 setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
                 setPreferredSize(new Dimension(300, 560));
+                dummypanel.setLayout(new BoxLayout(dummypanel, BoxLayout.PAGE_AXIS));
                 scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
                 scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
                 scrollPane.setBounds(0, 0, 330, 65);
@@ -721,12 +743,22 @@ import javax.swing.border.MatteBorder;
                 logtext.addAll(game.get_TextLog());
                 game.clear_TextLog();
                 while (logtextMarker < logtext.size()){
-                    JLabel output = new JLabel(logtext.get(logtextMarker));
-                    scrollPane.add(output);
+                    JLabel output = new JLabel();
+                    output.setText(logtext.get(logtextMarker));
+                    labellist.add(output);
+                    scrollPane.add(labellist.get(logtextMarker));
+                    dummypanel.add(labellist.get(logtextMarker));
                     logtextMarker++;
                 }
                 logtext.add("Break"); //separate the different stages of the solving algorithms
+                labellist.add(new JLabel("---------------------------"));
+                dummypanel.add(labellist.get(logtextMarker));
                 logtextMarker++;
+                scrollPane.revalidate();
+                scrollPane.repaint();
+                dummypanel.revalidate();
+                dummypanel.repaint();
+                super.pack();
             }
             
         }
@@ -816,10 +848,10 @@ import javax.swing.border.MatteBorder;
             private JLabel label = new JLabel("");
             private JLabel label2 = new JLabel("");
             private JButton step = new JButton("Step Through >>");
-            private JButton restart = new JButton("Restart");
+            private JButton restart = new JButton("Restart Puzzle");
             //open minigrid
             MiniGrid min = new MiniGrid();
-            //TextLog tl = new TextLog();
+            TextLog tl = new TextLog();
             
             public AIStepper()
             {
@@ -830,7 +862,7 @@ import javax.swing.border.MatteBorder;
                     @Override
                     public void windowClosing(WindowEvent e) 
                     {
-                        //tl.dispose();
+                        tl.dispose();
                         min.dispose();
                         e.getWindow().dispose();
                     }
@@ -840,7 +872,7 @@ import javax.swing.border.MatteBorder;
                        min.setLocation(initx + 657, inity + 222);
                     }
                  });
-                setPreferredSize(new Dimension(400, 100));
+                setPreferredSize(new Dimension(465, 100));
                 ((JPanel) getContentPane()).setBorder(new EmptyBorder(13, 13, 13, 13) );
                 setLayout(new FlowLayout());       
                 step.setActionCommand("myButton");
@@ -885,6 +917,7 @@ import javax.swing.border.MatteBorder;
                 {//AI stepper
                     if (get_count(gridvals) == 81){
                         label.setText("Puzzle is completed");
+                        clearMini();
                         label2.setText("");
                     }
                     else{
@@ -918,6 +951,9 @@ import javax.swing.border.MatteBorder;
                         else if (game.get_type() == 2){
                             label.setText("Filled in 1 tile");
                         }
+                        else if (game.getCount() == 0){
+                            label.setText("Initializing mini grid");
+                        }
                         else{
                             label.setText("Found "+game.getCount()+" values");
                         }
@@ -932,6 +968,13 @@ import javax.swing.border.MatteBorder;
                             updateMainPV();
                             displayMinigrid(minilabels);
                             game.updateSizes();
+                        }
+                        //print to scrollpane
+                        if (CI == 0){
+                            CI = 1;
+                        }
+                        else {
+                            tl.print_log();
                         }
                     }
                 }
@@ -952,7 +995,14 @@ import javax.swing.border.MatteBorder;
                     restartMini();
                     logtext = new ArrayList<String>();
                     logtextMarker = 0;
-                    scrollPane.removeAll();
+                    dummypanel.removeAll();
+                    dummypanel.revalidate();
+                    dummypanel.repaint();
+                    scrollPane.revalidate();
+                    scrollPane.repaint();
+                    tl.pack();
+                    CI = 0;
+                    labellist = new ArrayList<JLabel>();
                 }
                 
             }
@@ -1402,6 +1452,16 @@ import javax.swing.border.MatteBorder;
                 for (int j = 0; j < 9; j++){
                     for (int k = 0; k < 9; k++){
                         minilabels[i][j][k].setText((k+1)+"");
+                    }
+                }
+            }
+        }
+        
+        public void clearMini(){
+            for (int i = 0; i < 9; i++){
+                for (int j = 0; j < 9; j++){
+                    for (int k = 0; k < 9; k++){
+                        minilabels[i][j][k].setText(" ");
                     }
                 }
             }
