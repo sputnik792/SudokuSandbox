@@ -395,18 +395,21 @@ public class AIsolve {
 					if (visited[i][j] == 0){
 						h = "";
 						if (possvals[i][j].isIn(pair.get(0))){
-							h = h + pair.get(0);
+							h = h + pair.get(0) + ", ";
 							possvals[i][j].deleteObj(pair.get(0));
 							sizes[i][j]--;
 							removed++;
 						}
 						if (possvals[i][j].isIn(pair.get(1))){
-							h = h + ", " + pair.get(1);
+							h = h + pair.get(1) + ", ";
 							possvals[i][j].deleteObj(pair.get(1));
 							sizes[i][j]--;
 							removed++;
 						}
 						if (h != ""){
+							if (h.endsWith(", ")) {
+								h = h.substring(0, h.length()-2);
+							}
 							AIlog.add("Pair (Row): "+letter_axis[pair2[1]]+","+(pair2[0]+1)+" & "+letter_axis[pair2[3]]+","+(pair2[2]+1));
 							AIlog.add("Values: "+pair.get(0)+","+pair.get(1));
 							AIlog.add("Removed "+h+" from tile "+letter_axis[j]+","+(i+1));
@@ -462,18 +465,21 @@ public class AIsolve {
 					if (visited[i][j] == 0){
 						h = "";
 						if (possvals[i][j].isIn(pair.get(0))){
-							h = h + pair.get(0);
+							h = h + pair.get(0) + ", ";
 							possvals[i][j].deleteObj(pair.get(0));
 							sizes[i][j]--;
 							removed++;
 						}
 						if (possvals[i][j].isIn(pair.get(1))){
-							h = h + ", " + pair.get(1);
+							h = h + pair.get(1) + ", ";
 							possvals[i][j].deleteObj(pair.get(1));
 							sizes[i][j]--;
 							removed++;
 						}
 						if (h != ""){
+							if (h.endsWith(", ")) {
+								h = h.substring(0, h.length()-2);
+							}
 							AIlog.add("Pair (Column): "+letter_axis[pair2[1]]+","+(pair2[0]+1)+" & "+letter_axis[pair2[3]]+","+(pair2[2]+1));
 							AIlog.add("Values: "+pair.get(0)+","+pair.get(1));
 							AIlog.add("Removed "+h+" from tile "+letter_axis[j]+","+(i+1));
@@ -532,7 +538,7 @@ public class AIsolve {
 					q = j;
 					k++;
 				}
-				//if we found a pair, reduce all other cells in the cox
+				//if we found a pair, reduce all other cells in the box
 				if (flag){
 					String h;
 					for (int r = i; r < i+3; r++){
@@ -540,21 +546,24 @@ public class AIsolve {
 							if (visited[r][c] == 0){
 								h = "";
 								if (possvals[r][c].isIn(pair.get(0))){
-									h = h + pair.get(0);
+									h = h + pair.get(0) + ", ";
 									possvals[r][c].deleteObj(pair.get(0));
 									sizes[r][c]--;
 									removed++;
 								}
 								if (possvals[r][c].isIn(pair.get(1))){
-									h = h + ", " + pair.get(1);
+									h = h + pair.get(1) + ", ";
 									possvals[r][c].deleteObj(pair.get(1));
 									sizes[r][c]--;
 									removed++;
 								}
 								if (h != ""){
+									if (h.endsWith(", ")) {
+										h = h.substring(0, h.length()-2);
+									}
 									AIlog.add("Pair (Box): "+letter_axis[pair2[1]]+","+(pair2[0]+1)+" & "+letter_axis[pair2[3]]+","+(pair2[2]+1));
 									AIlog.add("Values: "+pair.get(0)+","+pair.get(1));
-									AIlog.add("Removed "+h+" from tile "+letter_axis[j]+","+(i+1));
+									AIlog.add("Removed "+h+" from tile "+letter_axis[c]+","+(r+1));
 								}
 							}
 						}
@@ -577,12 +586,16 @@ public class AIsolve {
 		// again, at most one triple for each row, column, or box,
 		//first, by row
 		ArrayList<Integer> triple = new ArrayList<Integer>();
+		int[] triple2 = new int[6];
 		boolean flag;
 		boolean check;
 		boolean check2;
 		int temp;
 		int k;
 		for (int i = 0; i < 9; i++){
+			for (int u = 0; u < 6; u++){
+				triple2[u] = 0;
+			}
 			while (!triple.isEmpty()){
 				triple.remove(0);
 			}
@@ -610,6 +623,12 @@ public class AIsolve {
 										visited[i][temp] = 1;
 										visited[i][j] = 1;
 										visited[i][k] = 1;
+										triple2[0] = i;
+										triple2[1] = k;
+										triple2[2] = i;
+										triple2[3] = temp;
+										triple2[4] = i;
+										triple2[5] = j;
 										flag = true;
 									}
 								}
@@ -629,6 +648,9 @@ public class AIsolve {
 			}
 			//for the last case (2,2,2), remember that all 3 tiles have to be different sets of values
 			if (!flag){ //if no triple has been found yet
+				for (int u = 0; u < 6; u++){
+					triple2[u] = 0;
+				}
 				k = 0;
 				while (!triple.isEmpty()){
 					triple.remove(0);
@@ -661,6 +683,12 @@ public class AIsolve {
 											visited[i][temp] = 1;
 											visited[i][j] = 1;
 											visited[i][k] = 1;
+											triple2[0] = i;
+											triple2[1] = k;
+											triple2[2] = i;
+											triple2[3] = temp;
+											triple2[4] = i;
+											triple2[5] = j;
 											flag = true;
 										}
 									}
@@ -686,24 +714,30 @@ public class AIsolve {
 					if (visited[i][j] == 0){
 						h = "";
 						if (possvals[i][j].isIn(triple.get(0))){
-							h = h + triple.get(0);
+							h = h + triple.get(0) + ", ";
 							possvals[i][j].deleteObj(triple.get(0));
 							sizes[i][j]--;
 							removed++;
 						}
 						if (possvals[i][j].isIn(triple.get(1))){
-							h = h + ", "+ triple.get(1);
+							h = h + triple.get(1) + ", ";
 							possvals[i][j].deleteObj(triple.get(1));
 							sizes[i][j]--;
 							removed++;
 						}
 						if (possvals[i][j].isIn(triple.get(2))){
-							h = h + ", "+ triple.get(2);
+							h = h + triple.get(2) + ", ";
 							possvals[i][j].deleteObj(triple.get(2));
 							sizes[i][j]--;
 							removed++;
 						}
 						if (h != ""){
+							if (h.endsWith(", ")) {
+								h = h.substring(0, h.length()-2);
+							}
+							AIlog.add("Triple (Row): "+letter_axis[triple2[1]]+","+(triple2[0] + 1)+" & " 
+										+ letter_axis[triple2[3]]+","+(triple2[2]+1)+" & "+letter_axis[triple2[5]]+","+(triple2[4]+1));
+							AIlog.add("Values: " + triple.get(0)+","+triple.get(1)+","+triple.get(2));
 							AIlog.add("Removed "+h+" from tile "+letter_axis[j]+","+(i+1));
 						}
 					}
@@ -714,6 +748,9 @@ public class AIsolve {
 		reset_visits();
 		//then we do it by column
 		for (int j = 0; j < 9; j++){
+			for (int u = 0; u < 6; u++){
+				triple2[u] = 0;
+			}
 			while (!triple.isEmpty()){
 				triple.remove(0);
 			}
@@ -741,6 +778,12 @@ public class AIsolve {
 										visited[temp][j] = 1;
 										visited[i][j] = 1;
 										visited[k][j] = 1;
+										triple2[0] = k;
+										triple2[1] = j;
+										triple2[2] = temp;
+										triple2[3] = j;
+										triple2[4] = i;
+										triple2[5] = j;
 										flag = true;
 									}
 								}
@@ -792,6 +835,12 @@ public class AIsolve {
 											visited[temp][j] = 1;
 											visited[i][j] = 1;
 											visited[k][j] = 1;
+											triple2[0] = k;
+											triple2[1] = j;
+											triple2[2] = temp;
+											triple2[3] = j;
+											triple2[4] = i;
+											triple2[5] = j;
 											flag = true;
 										}
 									}
@@ -817,24 +866,30 @@ public class AIsolve {
 					if (visited[i][j] == 0){
 						h = "";
 						if (possvals[i][j].isIn(triple.get(0))){
-							h = h + triple.get(0);
+							h = h + triple.get(0) + ", ";
 							possvals[i][j].deleteObj(triple.get(0));
 							sizes[i][j]--;
                             removed++;
 						}
 						if (possvals[i][j].isIn(triple.get(1))){
-							h = h + ", " + triple.get(1);
+							h = h + triple.get(1) + ", ";
 							possvals[i][j].deleteObj(triple.get(1));
 							sizes[i][j]--;
                             removed++;
 						}
 						if (possvals[i][j].isIn(triple.get(2))){
-							h = h + ", " + triple.get(2);
+							h = h + triple.get(2) + ", ";
 							possvals[i][j].deleteObj(triple.get(2));
 							sizes[i][j]--;
                             removed++;
 						}
 						if (h != ""){
+							if (h.endsWith(", ")) {
+								h = h.substring(0, h.length()-2);
+							}
+							AIlog.add("Triple (Column): "+letter_axis[triple2[1]]+","+(triple2[0] + 1)+" & " 
+									+ letter_axis[triple2[3]]+","+(triple2[2]+1)+" & "+letter_axis[triple2[5]]+","+(triple2[4]+1));
+							AIlog.add("Values: " + triple.get(0)+","+triple.get(1)+","+triple.get(2));
 							AIlog.add("Removed "+h+" from tile "+letter_axis[j]+","+(i+1));
 						}
 					}
@@ -848,6 +903,9 @@ public class AIsolve {
 		//finally, by box
 		for (int i = 0; i < 9; i = i+3){
 			for (int j = 0; j < 9; j = j+3){
+				for (int u = 0; u < 6; u++){
+					triple2[u] = 0;
+				}
 				while (!triple.isEmpty()){
 					triple.remove(0);
 				}
@@ -880,6 +938,12 @@ public class AIsolve {
 													visited[y1][y2] = 1;
 													visited[r][c] = 1;
 													visited[k][q] = 1;
+													triple2[0] = k;
+													triple2[1] = q;
+													triple2[2] = y1;
+													triple2[3] = y2;
+													triple2[4] = r;
+													triple2[5] = c;
 													flag = true;
 												}
 											}
@@ -941,6 +1005,12 @@ public class AIsolve {
 														visited[y1][y2] = 1;
 														visited[r][c] = 1;
 														visited[k][q] = 1;
+														triple2[0] = k;
+														triple2[1] = q;
+														triple2[2] = y1;
+														triple2[3] = y2;
+														triple2[4] = r;
+														triple2[5] = c;
 														flag = true;
 													}
 												}
@@ -971,25 +1041,31 @@ public class AIsolve {
 							if (visited[r][c] == 0){
 								h = "";
 								if (possvals[r][c].isIn(triple.get(0))){
-									h = h + triple.get(0);
+									h = h + triple.get(0) + ", ";
 									possvals[r][c].deleteObj(triple.get(0));
 									sizes[r][c]--;
 		                            removed++;
 								}
 								if (possvals[r][c].isIn(triple.get(1))){
-									h = h + ", " + triple.get(1);
+									h = h + triple.get(1) + ", ";
 									possvals[r][c].deleteObj(triple.get(1));
 									sizes[r][c]--;
 		                            removed++;
 								}
 								if (possvals[r][c].isIn(triple.get(2))){
-									h = h + ", " + triple.get(2);
+									h = h + triple.get(2) + ", ";
 									possvals[r][c].deleteObj(triple.get(2));
 									sizes[r][c]--;
 		                            removed++;
 								}
 								if (h != ""){
-									AIlog.add("Removed "+h+" from tile "+letter_axis[j]+","+(i+1));
+									if (h.endsWith(", ")) {
+										h = h.substring(0, h.length()-2);
+									}
+									AIlog.add("Triple (Box): "+letter_axis[triple2[1]]+","+(triple2[0] + 1)+" & " 
+											+ letter_axis[triple2[3]]+","+(triple2[2]+1)+" & "+letter_axis[triple2[5]]+","+(triple2[4]+1));
+									AIlog.add("Values: " + triple.get(0)+","+triple.get(1)+","+triple.get(2));
+									AIlog.add("Removed "+h+" from tile "+letter_axis[c]+","+(r+1));
 								}
 							}
 						}
@@ -1052,9 +1128,8 @@ public class AIsolve {
 								pair[0] = pairlist.get(w).first;
 								pair[1] = pairlist.get(w).second;
 								flag = true;
-								//System.out.println("type: row");
-								//System.out.println("tiles: "+tp[0]+","+tp[1]+" & "+tp[2]+","+tp[3]);
-								//System.out.println("values: "+pair[0]+","+pair[1]);
+								//AIlog.add("Pair (Row): "+tp[0]+","+tp[1]+" & "+tp[2]+","+tp[3]);
+								//AIlog.add("Values: "+pair[0]+","+pair[1]);
 							}
 							q++;
 						}
