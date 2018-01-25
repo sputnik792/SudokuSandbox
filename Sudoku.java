@@ -768,7 +768,7 @@ import javax.swing.border.MatteBorder;
             public MiniGrid(){
                 super("AI View");
                 setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-                setPreferredSize(new Dimension(600+40, 623+20));
+                setPreferredSize(new Dimension(600+40, 623+20+20+20));
                 ((JPanel) getContentPane()).setBorder(new EmptyBorder(1, 1, 1, 1));
                 setLayout(new FlowLayout());
                 JPanel parent3 = new JPanel(); //labeling the axis
@@ -789,9 +789,9 @@ import javax.swing.border.MatteBorder;
                 temp.setFont(new Font("Serif", Font.PLAIN, 15));
                 temp.setForeground(new Color (170, 0, 0));
                 subpar1.add(temp);
-                //subpar2.add(new JLabel(" "));
                 subpar2.add(new JLabel(" "));
-                for (int a = 0; a < 3; a++){
+                subpar2.add(new JLabel(" "));
+                for (int a = 0; a < 2; a++){
                     JLabel temp2 = new JLabel(""+(a+1)+"       ");
                     temp2.setFont(new Font("Serif", Font.PLAIN, 15));
                     temp2.setForeground(new Color (170, 0, 0));
@@ -800,8 +800,14 @@ import javax.swing.border.MatteBorder;
                     subpar2.add(new JLabel(" "));
                     subpar2.add(new JLabel(" "));   
                 }
+                JLabel temp3 = new JLabel(""+(3)+"       ");
+                temp3.setFont(new Font("Serif", Font.PLAIN, 15));
+                temp3.setForeground(new Color (170, 0, 0));
+                subpar2.add(temp3);
                 subpar2.add(new JLabel(" "));
-                for (int a = 3; a < 6; a++){
+                subpar2.add(new JLabel(" "));
+                //subpar2.add(new JLabel(" "));
+                for (int a = 3; a < 5; a++){
                     JLabel temp2 = new JLabel(""+(a+1)+"       ");
                     temp2.setFont(new Font("Serif", Font.PLAIN, 15));
                     temp2.setForeground(new Color (170, 0, 0));
@@ -810,7 +816,13 @@ import javax.swing.border.MatteBorder;
                     subpar2.add(new JLabel(" "));
                     subpar2.add(new JLabel(" "));
                 }
+                JLabel temp4 = new JLabel(""+(6)+"       ");
+                temp4.setFont(new Font("Serif", Font.PLAIN, 15));
+                temp4.setForeground(new Color (170, 0, 0));
+                subpar2.add(temp4);
                 subpar2.add(new JLabel(" "));
+                subpar2.add(new JLabel(" "));
+                //subpar2.add(new JLabel(" "));
                 for (int a = 6; a < 8; a++){
                     JLabel temp2 = new JLabel(""+(a+1)+"       ");
                     temp2.setFont(new Font("Serif", Font.PLAIN, 15));
@@ -826,6 +838,7 @@ import javax.swing.border.MatteBorder;
                 subpar2.add(temp2);
                 subpar2.add(new JLabel(" "));
                 subpar2.add(new JLabel(" "));
+                //subpar2.add(new JLabel(" "));
                 //add(new CellGridPane2());
                 parent4.add(subpar1);
                 parent3.add(new CellGridPane2());
