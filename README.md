@@ -50,5 +50,5 @@ v1.0
 - Added AI that solves puzzles step by step
 
 
-
+All of this code was create from scratch, using Java AWT and Java Swing tools. 
 
