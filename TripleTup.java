@@ -8,4 +8,12 @@ public class TripleTup<X, Y, Z> extends Tuple<X, Y> {
 		this.third = z;
 	}
 
+	public boolean equals(TripleTup<X, Y, Z> trip) {
+		if ((this.first == trip.first)&&(this.second == trip.second)&&(this.third == trip.third)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 }
